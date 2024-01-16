@@ -18,40 +18,38 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @RestControllerAdvice
 public class ApplicationExceptionHandller extends ResponseEntityExceptionHandler {
-	
+
+	// Utility method to create a standardized response structure
 	private ResponseEntity<Object> structure(HttpStatus status, String message, Object rootCause) {
-		return new ResponseEntity<Object>(Map.of(
-				"Status",status.value(),
-				"message",message,
-				"rootCause",rootCause),status);
+		return new ResponseEntity<Object>(Map.of("Status", status.value(), "message", message, "rootCause", rootCause),
+				status);
 	}
 
+	// Extract field errors and their corresponding error messages
 	@Override
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
 			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 		List<ObjectError> allErrors = ex.getAllErrors();
-		Map<String, String>errors=new HashMap<>();
-		
-		allErrors.forEach(error ->{
-			FieldError fieldError=(FieldError) error;
+		Map<String, String> errors = new HashMap<>();
+
+		// Extract field errors and their corresponding error messages
+		allErrors.forEach(error -> {
+			FieldError fieldError = (FieldError) error;
 			errors.put(fieldError.getField(), error.getDefaultMessage());
 		});
 		return structure(HttpStatus.BAD_REQUEST, "Failed To Save The Data", errors);
 	}
 
-
-
+	// Custom handling for DataNotPresentException
 	@ExceptionHandler(DataNotPresentException.class)
-	public ResponseEntity<Object> handllerDataNotPresent(DataNotPresentException ex){
-		return structure(HttpStatus.NOT_FOUND,ex.getMessage(),"User data Not Present");
-	}
-	
-	@ExceptionHandler(UserNotFoundByIdException.class)
-	public ResponseEntity<Object> handllerUserNotFoundById(UserNotFoundByIdException ex){
-		return structure(HttpStatus.NOT_FOUND,ex.getMessage(),"User With Given Id Not Present");
+	public ResponseEntity<Object> handllerDataNotPresent(DataNotPresentException ex) {
+		return structure(HttpStatus.NOT_FOUND, ex.getMessage(), "User data Not Present");
 	}
 
-	
-	
-	
+	// Custom handling for UserNotFoundByIdException
+	@ExceptionHandler(UserNotFoundByIdException.class)
+	public ResponseEntity<Object> handllerUserNotFoundById(UserNotFoundByIdException ex) {
+		return structure(HttpStatus.NOT_FOUND, ex.getMessage(), "User With Given Id Not Present");
+	}
+
 }
